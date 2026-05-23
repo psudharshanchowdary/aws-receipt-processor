@@ -5,6 +5,18 @@ AWS Receipt Processor is a serverless, dual-mode expense management portal desig
 
 ---
 
+## Cloud Computing Principles & Architecture
+This project is architected specifically to demonstrate core modern Cloud Computing principles, architectural patterns, and serverless best practices:
+
+*   **Serverless Compute (FaaS)**: Implements event-driven backend logic using AWS Lambda. The application runs compute routines on-demand, scaling automatically to handle concurrent scans without running or paying for idle virtual machines.
+*   **Decoupled Cloud Object Storage**: Uses Amazon S3 for secure, encrypted object storage (AES-256) to separate file uploads, pipeline results, and application state from the compute layer.
+*   **Managed NoSQL Database (DBaaS)**: Uses Amazon DynamoDB configured in **Pay-Per-Request** billing mode. Demonstrates key-value store performance, high throughput, and zero-cost schema-less databases.
+*   **Federated Identity & Client-Side Security**: Integrates Amazon Cognito Identity Pools to safely exchange public federations for temporary, highly-restricted IAM credentials, allowing direct-to-S3 uploads from the browser without exposing static access keys.
+*   **AI/ML Cloud Integration (AIaaS)**: Integrates AWS Textract (`AnalyzeExpense` API) to show how pre-trained computer vision models can be consumed as an API service.
+*   **Cloud Emulation (Sandboxing)**: Leverages **LocalStack** in a Docker Compose network to emulate AWS cloud services locally. This represents the industry pattern of setting up offline, zero-cost developer sandboxes mirroring production cloud APIs.
+
+---
+
 ## Technologies
 
 *   **Frontend Client**: Vanilla HTML5, Vanilla CSS3 (featuring premium dark-mode, glassmorphism layouts, floating status badges, dynamic scanning line animations, and custom CSS micro-animations), Vanilla JavaScript, AWS SDK for JavaScript, HTML5 LocalStorage.
