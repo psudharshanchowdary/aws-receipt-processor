@@ -1,0 +1,18 @@
+# Local environment configuration
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build/Deploy artifacts
+*.zip
+output.json
+
+# IDEs
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc

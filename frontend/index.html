@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReceiptAI | Real-Time Receipt OCR & Storage</title>
+  <meta name="description" content="Upload receipts and automatically extract vendor, date, and amount using Tesseract OCR. Stored in DynamoDB via Docker or AWS." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">&#9638;</div>
+        <span class="logo-text">ReceiptAI</span>
+        <span class="logo-badge" id="logoBadge">AWS Mode</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#upload-section" class="nav-link">Upload</a>
+        <a href="#results-section" class="nav-link">Results</a>
+        <a href="#architecture-section" class="nav-link">How It Works</a>
+      </nav>
+      <div class="header-status">
+        <span class="status-dot active"></span>
+        <span class="status-text" id="statusText">Services Online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">&#10022; Powered by Tesseract OCR &amp; AWS API Compatibility</div>
+      <h1 class="hero-title">Automate Your<br /><span class="gradient-text">Receipt Scanning</span></h1>
+      <p class="hero-subtitle">Tesseract OCR reads your receipt image, extracts vendor, date &amp; amount — stored instantly in DynamoDB. No signup required.</p>
+      <div class="hero-stats">
+        <div class="stat-item"><span class="stat-value">~2s</span><span class="stat-label">Real OCR Time</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><span class="stat-value">100%</span><span class="stat-label">Free (Docker)</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><span class="stat-value">AES-256</span><span class="stat-label">S3 Encryption</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="receipt-mockup">
+        <div class="receipt-card">
+          <div class="receipt-header-line"></div>
+          <div class="receipt-lines">
+            <div class="r-line r-title"></div>
+            <div class="r-line r-short"></div>
+            <div class="r-line r-medium"></div>
+            <div class="r-spacer"></div>
+            <div class="r-row"><div class="r-line r-label"></div><div class="r-line r-value"></div></div>
+            <div class="r-row"><div class="r-line r-label"></div><div class="r-line r-value"></div></div>
+            <div class="r-spacer"></div>
+            <div class="r-total-row"><div class="r-line r-label-bold"></div><div class="r-line r-value-bold"></div></div>
+          </div>
+        </div>
+        <div class="scan-overlay">
+          <div class="scan-line" id="scanLine"></div>
+          <div class="scan-corners">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
+          </div>
+        </div>
+        <div class="data-chip chip-vendor"><span class="chip-label">Vendor</span><span class="chip-value">Reliance Fresh</span></div>
+        <div class="data-chip chip-amount"><span class="chip-label">Total</span><span class="chip-value">&#8377; 866.25</span></div>
+        <div class="data-chip chip-date"><span class="chip-label">Date</span><span class="chip-value">2026-05-23</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UPLOAD SECTION -->
+  <section class="section" id="upload-section">
+    <div class="container">
+      
+      <!-- MODE BANNER -->
+      <div class="mode-banner aws" id="modeBanner">
+        <span class="mode-icon" id="modeIcon">☁️</span>
+        <div class="mode-info">
+          <span class="mode-title" id="modeTitle">AWS Cloud Mode Active</span>
+          <span class="mode-desc" id="modeDesc">Running directly against your AWS infrastructure. Make sure you set your API Gateway and Cognito Pool details below.</span>
+        </div>
+        <button class="btn-toggle-config" id="toggleConfigBtn">Show Settings</button>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Upload Bill</h2>
+        <p class="section-subtitle">Supports JPG, PNG, PDF &bull; Max 10 MB &bull; AES-256 encrypted storage</p>
+      </div>
+
+      <div class="upload-card">
+        <!-- Configuration Panel (Hidden by default in Local Docker Mode) -->
+        <div class="config-panel hidden" id="configPanel">
+          <h3 class="config-title">API Configuration</h3>
+          <div class="config-form">
+            <div class="form-group" id="groupApiUrl">
+              <label for="apiUrlInput" class="form-label">API Endpoint / Gateway URL</label>
+              <input type="text" id="apiUrlInput" class="form-input" placeholder="http://localhost:8000 (Auto-detected)" />
+            </div>
+            <div class="form-group" id="groupRegion">
+              <label for="awsRegion" class="form-label">AWS Region</label>
+              <input type="text" id="awsRegion" class="form-input" placeholder="ap-south-1" />
+            </div>
+            <div class="form-group" id="groupBucket">
+              <label for="s3Bucket" class="form-label">S3 Bucket Name</label>
+              <input type="text" id="s3Bucket" class="form-input" placeholder="my-private-receipts-bucket" />
+            </div>
+            <div class="form-group" id="groupIdentityPool">
+              <label for="identityPoolId" class="form-label">Cognito Identity Pool ID</label>
+              <input type="text" id="identityPoolId" class="form-input" placeholder="ap-south-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+            </div>
+            <div class="form-group">
+              <label for="emailInput" class="form-label">Notification Email</label>
+              <input type="email" id="emailInput" class="form-input" placeholder="your-email@example.com (Optional)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon-wrap">
+            <div class="drop-icon" id="dropIcon">&#8679;</div>
+          </div>
+          <p class="drop-title">Drag &amp; drop your bill here</p>
+          <p class="drop-subtitle">or click to browse files</p>
+          <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
+          <button class="btn-browse" id="browseBtn" type="button">Browse Files</button>
+          <div class="demo-divider"><span>or</span></div>
+          <button class="btn-demo" id="tryDemoBtn" type="button">▶ Try Demo (no file needed)</button>
+          <p class="drop-hint">JPG, PNG, PDF &bull; Up to 10 MB</p>
+        </div>
+
+        <!-- File Preview -->
+        <div class="file-preview hidden" id="filePreview">
+          <div class="preview-content">
+            <img id="previewImage" src="" alt="Receipt preview" class="preview-img" />
+            <div class="preview-info">
+              <div class="preview-details">
+                <span class="preview-name" id="previewName">receipt.jpg</span>
+                <span class="preview-size" id="previewSize">—</span>
+              </div>
+              <button class="btn-remove" id="removeFileBtn" type="button" title="Remove file">&times;</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-upload" id="uploadBtn" type="button" disabled>
+          <span class="btn-upload-text">Process Receipt</span>
+          <span class="btn-upload-loading hidden"><span class="spinner"></span> Processing…</span>
+        </button>
+      </div>
+
+      <!-- Pipeline Status -->
+      <div class="pipeline" id="pipeline">
+        <div class="pipeline-step" id="step-upload" data-step="upload">
+          <div class="step-icon">&#8679;</div>
+          <div class="step-info"><span class="step-name">Upload</span><span class="step-status">Waiting</span></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-step" id="step-lambda" data-step="lambda">
+          <div class="step-icon" id="stepIconTrigger">&#9889;</div>
+          <div class="step-info"><span class="step-name" id="stepNameTrigger">Lambda Trigger</span><span class="step-status">Waiting</span></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-step" id="step-textract" data-step="textract">
+          <div class="step-icon" id="stepIconOcr">&#9638;</div>
+          <div class="step-info"><span class="step-name" id="stepNameOcr">Textract OCR</span><span class="step-status">Waiting</span></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-step" id="step-dynamodb" data-step="dynamodb">
+          <div class="step-icon">&#128200;</div>
+          <div class="step-info"><span class="step-name">DynamoDB Stored</span><span class="step-status">Waiting</span></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-step" id="step-ses" data-step="ses">
+          <div class="step-icon">&#9993;</div>
+          <div class="step-info"><span class="step-name">SES Notification</span><span class="step-status">Waiting</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS SECTION -->
+  <section class="section" id="results-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Extracted Data</h2>
+        <p class="section-subtitle">Structured receipt data parsed by Tesseract / Textract</p>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">&#128196;</div>
+        <p class="empty-title">No receipts processed yet</p>
+        <p class="empty-subtitle">Upload a receipt above or run the demo to see extracted data here</p>
+      </div>
+      <div class="results-grid hidden" id="resultsGrid">
+        <div class="result-card main-card" id="mainResultCard">
+          <div class="result-card-header">
+            <div class="result-card-icon success">&#10003;</div>
+            <div class="result-card-title">
+              <h3>Scan Summary</h3>
+              <span class="result-timestamp" id="resultTimestamp">—</span>
+            </div>
+            <button class="btn-copy-json" id="copyJsonBtn" title="Copy as JSON">Copy JSON</button>
+          </div>
+          <div class="result-fields">
+            <div class="result-field"><span class="field-label">Receipt ID</span><span class="field-value mono" id="fieldReceiptId">—</span></div>
+            <div class="result-field"><span class="field-label">Vendor</span><span class="field-value" id="fieldVendor">—</span></div>
+            <div class="result-field"><span class="field-label">Date</span><span class="field-value" id="fieldDate">—</span></div>
+            <div class="result-field highlight"><span class="field-label">Total Amount</span><span class="field-value amount" id="fieldAmount">—</span></div>
+            <div class="result-field"><span class="field-label">Currency</span><span class="field-value" id="fieldCurrency">—</span></div>
+            <div class="result-field"><span class="field-label">Category</span><span class="field-value" id="fieldCategory"><span class="category-badge" id="categoryBadge">—</span></span></div>
+            <div class="result-field"><span class="field-label">S3 Key</span><span class="field-value mono small" id="fieldS3Key">—</span></div>
+          </div>
+        </div>
+
+        <!-- Raw OCR Panel -->
+        <div class="result-card ocr-card" id="ocrCard">
+          <div class="result-card-header">
+            <h3>🔎 Raw OCR Text</h3>
+            <span class="ocr-engine-tag" id="ocrEngineTag">Tesseract</span>
+          </div>
+          <pre class="ocr-view" id="ocrView">Extracting text...</pre>
+        </div>
+
+        <div class="result-card json-card">
+          <div class="result-card-header"><h3>DynamoDB Record JSON</h3></div>
+          <pre class="json-view" id="jsonView">{}</pre>
+        </div>
+      </div>
+
+      <div class="history-section hidden" id="historySection">
+        <div class="history-header">
+          <h3 class="history-title">Processing History</h3>
+          <a class="mode-link" id="dynamoAdminLink" href="http://localhost:8001" target="_blank" style="margin-right: 15px;">View in DynamoDB Admin ↗</a>
+          <button class="btn-clear-history" id="clearHistoryBtn" type="button">Clear History</button>
+        </div>
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead><tr><th>Receipt ID</th><th>Vendor</th><th>Date</th><th>Amount</th><th>Category</th><th>Status</th></tr></thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE SECTION -->
+  <section class="section alt-bg" id="architecture-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">System Architecture</h2>
+        <p class="section-subtitle">Event-driven expense capture workflow</p>
+      </div>
+      <div class="arch-diagram">
+        <div class="arch-node"><div class="arch-icon" style="--c:#6C63FF">&#128187;</div><span class="arch-label">Frontend</span><span class="arch-tech">HTML/JS</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node"><div class="arch-icon" style="--c:#F59E0B">&#128230;</div><span class="arch-label">S3 Bucket</span><span class="arch-tech">LocalStack / AWS S3</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node"><div class="arch-icon" style="--c:#10B981" id="archComputeIcon">&#9889;</div><span class="arch-label" id="archComputeLabel">API Server</span><span class="arch-tech" id="archComputeTech">Flask / Lambda</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node"><div class="arch-icon" style="--c:#06B6D4" id="archOcrIcon">&#9638;</div><span class="arch-label" id="archOcrLabel">Tesseract OCR</span><span class="arch-tech" id="archOcrTech">Local Engine / Textract</span></div>
+      </div>
+      <div class="arch-bottom">
+        <div class="arch-node"><div class="arch-icon" style="--c:#8B5CF6">&#128200;</div><span class="arch-label">DynamoDB</span><span class="arch-tech">NoSQL Store</span></div>
+        <div class="arch-node"><div class="arch-icon" style="--c:#EC4899">&#9993;</div><span class="arch-label">SES Email</span><span class="arch-tech">Notification</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- AWS SDK for JavaScript (used in AWS Cloud Mode) -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1692.0.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
