@@ -109,5 +109,5 @@ docker compose up --build
 
 ## Demo Video
 🎬 **Watch Demo Video**  
-[Watch Demo Video](https://drive.google.com/drive/folders/1Uy0oUozS_CKmR_e1y7vzLmrdLgCCUIhZ?usp=drive_link)  
+[Watch Demo Video](https://drive.google.com/file/d/1iuMJwL9OMC099hdyWn_RFoFxFF-vnJU2/view?usp=drive_link)  
 Full platform walkthrough showing local Docker stack simulation and AWS serverless cloud deployment.
